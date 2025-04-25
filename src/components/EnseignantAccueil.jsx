@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiMoreVertical } from "react-icons/fi";
+import { FiMoreVertical, FiBell, FiLogOut } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Box } from "@react-three/drei";
@@ -9,9 +9,8 @@ import "react-toastify/dist/ReactToastify.css";
 import "./EnseignantAccueil.css";
 
 const EnseignantAccueil = () => {
-  const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode") === "true");
-  const [view, setView] = useState("promotion");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [view, setView] = useState("accueil");
   const navigate = useNavigate();
   const [grade, setGrade] = useState("Maître Assistant B");
   const [experience, setExperience] = useState("");
@@ -28,16 +27,6 @@ const EnseignantAccueil = () => {
       navigate("/");
     }
   }, [navigate]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    localStorage.setItem("darkMode", !darkMode);
-    toast.info(`Mode ${darkMode ? "clair" : "sombre"} activé`);
-  };
-
-  useEffect(() => {
-    document.body.classList.toggle("dark-mode", darkMode);
-  }, [darkMode]);
 
   const handleFileChange = (e, setter, maxFiles) => {
     const files = Array.from(e.target.files);
@@ -68,50 +57,75 @@ const EnseignantAccueil = () => {
   return (
     <div className="container">
       <ToastContainer />
-      <div className="header">
-        <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
-          <FiMoreVertical size={24} />
+      {/* Header avec message de bienvenue */}
+      <div className="welcome-header">
+        <div className="welcome-message">
+          Bienvenue au portail enseignant
         </div>
-        {menuOpen && (
-          <div className="dropdown-menu">
-            <button onClick={() => toast.info("Notifications")}>🔔 Notifications</button>
-            <button onClick={handleLogout}>🚪 Déconnexion</button>
+        <div className="actions">
+          <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
+            <FiMoreVertical size={24} />
           </div>
-        )}
-        <button onClick={toggleDarkMode} className="dark-mode-toggle">
-          {darkMode ? "Mode Clair" : "Mode Sombre"}
-        </button>
+          {menuOpen && (
+            <div className="dropdown-menu">
+              <button onClick={() => toast.info("Notifications")}>
+                <FiBell size={18} />
+                Notifications
+              </button>
+              <button onClick={handleLogout}>
+                <FiLogOut size={18} />
+                Déconnexion
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Menu latéral */}
       <div className="menu-lateral">
         <h2>Système de Promotion</h2>
-        <button className={view === "promotion" ? "active" : ""} onClick={() => setView("promotion")}>
-          📄 Demande de Promotion
+        <button 
+          className={view === "accueil" ? "active" : ""} 
+          onClick={() => setView("accueil")}
+        >
+          Accueil
         </button>
-        <button className={view === "statut" ? "active" : ""} onClick={() => setView("statut")}>
-          📊 Voir mon statut
+        <button 
+          className={view === "promotion" ? "active" : ""} 
+          onClick={() => setView("promotion")}
+        >
+          Demande de Promotion
         </button>
-        <button className={view === "etudiants" ? "active" : ""} onClick={() => setView("etudiants")}>
-          🎓 Voir la liste des étudiants
+        <button 
+          className={view === "statut" ? "active" : ""} 
+          onClick={() => setView("statut")}
+        >
+          Voir mon statut
+        </button>
+        <button 
+          className={view === "etudiants" ? "active" : ""} 
+          onClick={() => setView("etudiants")}
+        >
+          Liste des étudiants
         </button>
       </div>
 
+      {/* Contenu principal */}
       <div className="contenu">
         <div className="contenu-box">
-          <div className="canvas-container">
-            <Canvas>
-              <ambientLight />
-              <pointLight position={[10, 10, 10]} />
-              <Box position={[-1.2, 0, 0]}>
-                <meshStandardMaterial attach="material" color="orange" />
-              </Box>
-              <Box position={[1.2, 0, 0]}>
-                <meshStandardMaterial attach="material" color="blue" />
-              </Box>
-              <OrbitControls />
-            </Canvas>
-          </div>
-          {view === "promotion" ? (
+          {view === "accueil" ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2>Tableau de bord</h2>
+              <p>Bienvenue sur votre espace enseignant</p>
+              <div className="canvas-container">
+                
+              </div>
+            </motion.div>
+          ) : view === "promotion" ? (
             <>
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                 <h2>Soumettre une demande de promotion</h2>
@@ -177,8 +191,7 @@ const EnseignantAccueil = () => {
             <>
               <h2>État de la demande</h2>
               <p>
-                Statut :{" "}
-                {statutPromotion === "non soumis" ? (
+                Statut : {statutPromotion === "non soumis" ? (
                   <span className="statut-non-soumis">Vous n'avez pas encore soumis une demande</span>
                 ) : (
                   <span className="statut-attente">En attente</span>
@@ -188,7 +201,7 @@ const EnseignantAccueil = () => {
           ) : (
             <>
               <h2>Liste des étudiants</h2>
-              <p>⚡ Fonctionnalité à implémenter pour examiner les étudiants.</p>
+              <p>Liste des étudiants à examiner...</p>
             </>
           )}
         </div>

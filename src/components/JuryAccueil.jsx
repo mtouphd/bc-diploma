@@ -1,30 +1,26 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiMoreVertical, FiList, FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { FiMoreVertical, FiBell, FiLogOut } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./JuryAccueil.css";
 
 const JuryAccueil = () => {
-  const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode") === "true");
-  const [view, setView] = useState("dashboard");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [demandes, setDemandes] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [view, setView] = useState("accueil");
   const navigate = useNavigate();
+  const [demandes, setDemandes] = useState([]);
 
   useEffect(() => {
     const user = localStorage.getItem("user");
-    if (!user || JSON.parse(user).role !== "jury") {
+    if (!user) {
       navigate("/");
     }
+    // Charger les demandes depuis le localStorage
+    const storedDemandes = JSON.parse(localStorage.getItem("demandes")) || [];
+    setDemandes(storedDemandes);
   }, [navigate]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    localStorage.setItem("darkMode", !darkMode);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -32,124 +28,179 @@ const JuryAccueil = () => {
     toast.success("Déconnexion réussie");
   };
 
-  const handleViewDemandes = () => {
-    setView("demandes");
-    setLoading(true);
-    // À remplacer par l'appel API
-    setLoading(false);
+  const handleValiderDemande = (demandeId) => {
+    const updatedDemandes = demandes.map(demande => {
+      if (demande.id === demandeId) {
+        return { ...demande, statut: "Validé" };
+      }
+      return demande;
+    });
+    setDemandes(updatedDemandes);
+    localStorage.setItem("demandes", JSON.stringify(updatedDemandes));
+    toast.success("Demande validée avec succès");
   };
 
-  const handleAccept = async (id) => {
-    try {
-      // À remplacer par l'appel API
-      toast.success("Demande acceptée");
-    } catch (error) {
-      toast.error("Erreur lors de l'acceptation");
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      // À remplacer par l'appel API
-      toast.error("Demande refusée");
-    } catch (error) {
-      toast.error("Erreur lors du refus");
-    }
+  const handleRefuserDemande = (demandeId) => {
+    const updatedDemandes = demandes.map(demande => {
+      if (demande.id === demandeId) {
+        return { ...demande, statut: "Refusé" };
+      }
+      return demande;
+    });
+    setDemandes(updatedDemandes);
+    localStorage.setItem("demandes", JSON.stringify(updatedDemandes));
+    toast.error("Demande refusée");
   };
 
   return (
-    <div className={`container ${darkMode ? "dark-mode" : ""}`}>
+    <div className="container">
       <ToastContainer />
-      
-      {/* Barre supérieure */}
-      <div className="header">
-        <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
-          <FiMoreVertical size={24} />
+      <div className="welcome-header">
+        <div className="welcome-message">
+          Bienvenue au portail jury
         </div>
-        {menuOpen && (
-          <div className="dropdown-menu">
-            <button onClick={() => toast.info("Notifications")}>🔔 Notifications</button>
-            <button onClick={handleLogout}>🚪 Déconnexion</button>
+        <div className="actions">
+          <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
+            <FiMoreVertical size={24} />
           </div>
-        )}
-        <button onClick={toggleDarkMode} className="dark-mode-toggle">
-          {darkMode ? "Mode Clair" : "Mode Sombre"}
-        </button>
+          {menuOpen && (
+            <div className="dropdown-menu">
+              <button onClick={() => toast.info("Notifications")}>
+                <FiBell size={18} />
+                Notifications
+              </button>
+              <button onClick={handleLogout}>
+                <FiLogOut size={18} />
+                Déconnexion
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Menu latéral */}
       <div className="menu-lateral">
-        <h2>Tableau de bord Jury</h2>
+        <h2>Système de Validation</h2>
         <button 
-          className={`menu-button ${view === "demandes" ? "active" : ""}`}
-          onClick={handleViewDemandes}
+          className={view === "accueil" ? "active" : ""} 
+          onClick={() => setView("accueil")}
         >
-          <FiList /> Liste des demandes
+          Accueil
+        </button>
+        <button 
+          className={view === "demandes" ? "active" : ""} 
+          onClick={() => setView("demandes")}
+        >
+          Demandes en attente
+        </button>
+        <button 
+          className={view === "historique" ? "active" : ""} 
+          onClick={() => setView("historique")}
+        >
+          Historique
         </button>
       </div>
 
-      {/* Contenu principal */}
       <div className="contenu">
         <div className="contenu-box">
-          {view === "demandes" && (
-            <motion.div
+          {view === "accueil" ? (
+            <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h2>Liste des demandes de promotion</h2>
-              {loading ? (
-                <div className="loading-spinner">Chargement des demandes...</div>
-              ) : demandes.length === 0 ? (
-                <div className="no-data">
-                  Aucune demande de promotion en attente
-                </div>
-              ) : (
-                <div className="demandes-list">
-                  {demandes.map((demande) => (
-                    <div key={demande.id} className="demande-card">
-                      <div className="card-content">
-                        <div className="card-header">
-                          <h3>Demande de promotion</h3>
-                          <span className="statut-badge en-attente">En attente</span>
-                        </div>
-                        <div className="card-details">
-                          <p><strong>Grade actuel :</strong> {demande.gradeActuel}</p>
-                          <p><strong>Grade demandé :</strong> {demande.gradeDemande}</p>
-                        </div>
-                        <div className="card-actions">
-                          <button 
-                            className="accept-btn"
-                            onClick={() => handleAccept(demande.id)}
-                          >
-                            <FiCheckCircle /> Accepter
-                          </button>
-                          <button 
-                            className="reject-btn"
-                            onClick={() => handleReject(demande.id)}
-                          >
-                            <FiXCircle /> Refuser
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <h2>Tableau de bord</h2>
+              <p>Bienvenue sur votre espace jury</p>
+              <div className="statistics">
+                <p>Demandes en attente : {demandes.filter(d => d.statut === "En attente").length}</p>
+                <p>Demandes traitées : {demandes.filter(d => d.statut !== "En attente").length}</p>
+              </div>
             </motion.div>
-          )}
-
-          {view === "dashboard" && (
-            <motion.div
+          ) : view === "demandes" ? (
+            <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h2>Bienvenue dans votre espace Jury</h2>
-              <p>
-                Utilisez le menu latéral pour consulter et gérer les demandes 
-                de promotion des enseignants.
-              </p>
+              <h2>Demandes en attente</h2>
+              <div className="table-container">
+                {demandes.filter(d => d.statut === "En attente").length > 0 ? (
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nom</th>
+                        <th>Prénom</th>
+                        <th>Filière</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {demandes
+                        .filter(demande => demande.statut === "En attente")
+                        .map(demande => (
+                          <tr key={demande.id}>
+                            <td>{demande.etudiant.nom}</td>
+                            <td>{demande.etudiant.prenom}</td>
+                            <td>{demande.etudiant.filiere}</td>
+                            <td className="actions-cell">
+                              <button 
+                                className="valide"
+                                onClick={() => handleValiderDemande(demande.id)}
+                              >
+                                Valider
+                              </button>
+                              <button 
+                                className="refuser"
+                                onClick={() => handleRefuserDemande(demande.id)}
+                              >
+                                Refuser
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="empty-message">Aucune demande en attente</p>
+                )}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2>Historique des demandes</h2>
+              <div className="table-container">
+                {demandes.filter(d => d.statut !== "En attente").length > 0 ? (
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nom</th>
+                        <th>Prénom</th>
+                        <th>Filière</th>
+                        <th>Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {demandes
+                        .filter(demande => demande.statut !== "En attente")
+                        .map(demande => (
+                          <tr key={demande.id}>
+                            <td>{demande.etudiant.nom}</td>
+                            <td>{demande.etudiant.prenom}</td>
+                            <td>{demande.etudiant.filiere}</td>
+                            <td className={`statut-${demande.statut.toLowerCase()}`}>
+                              {demande.statut}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="empty-message">Aucune demande traitée</p>
+                )}
+              </div>
             </motion.div>
           )}
         </div>

@@ -239,10 +239,16 @@ const SignupForm = ({ switchToLogin }) => {
 const AuthPage = () => {
   const [isSignup, setIsSignup] = useState(false);
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 shadow-lg rounded-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-center">{isSignup ? "Inscription" : "Connexion"}</h2>
-        {isSignup ? <SignupForm switchToLogin={() => setIsSignup(false)} /> : <LoginForm switchToSignup={() => setIsSignup(true)} />}
+    <div className="auth-page-container">
+      <div className="auth-form-container">
+        <h2 className="text-2xl font-bold mb-4 text-center">
+          {isSignup ? "Inscription" : "Connexion"}
+        </h2>
+        {isSignup ? (
+          <SignupForm switchToLogin={() => setIsSignup(false)} />
+        ) : (
+          <LoginForm switchToSignup={() => setIsSignup(true)} />
+        )}
       </div>
     </div>
   );

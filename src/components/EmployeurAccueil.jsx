@@ -1,29 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiMoreVertical } from "react-icons/fi";
+import { FiMoreVertical, FiBell, FiLogOut } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./EmployeurAccueil.css";
 
 const EmployeurAccueil = () => {
-  const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode") === "true");
-  const [view, setView] = useState("dashboard"); // Vue par défaut
   const [menuOpen, setMenuOpen] = useState(false);
+  const [view, setView] = useState("accueil");
   const navigate = useNavigate();
 
   useEffect(() => {
     const user = localStorage.getItem("user");
-    if (!user || JSON.parse(user).role !== "employeur") {
-      navigate("/"); // Rediriger si l'utilisateur n'est pas un employeur
+    if (!user) {
+      navigate("/");
     }
   }, [navigate]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    localStorage.setItem("darkMode", !darkMode);
-    toast.info(`Mode ${darkMode ? "clair" : "sombre"} activé`);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -31,76 +24,124 @@ const EmployeurAccueil = () => {
     toast.success("Déconnexion réussie");
   };
 
-  const handleAccessDatabase = () => {
-    setView("database");
-    toast.info("Accès à la base de données !");
-    // l'endroit ou vous pouvez ajouter la logique pour accder a la base de donne
-  };
-
-  const handleAccessBlockchain = () => {
-    setView("blockchain");
-    toast.info("Accès à la blockchain !");
-    // l'endroit ou vous pouvez ajouter la logique pour accder a la blockchain
-  };
-
   return (
-    <div className={`container ${darkMode ? "dark-mode" : ""}`}>
+    <div className="container">
       <ToastContainer />
-      {/* Barre supérieure */}
-      <div className="header">
-        <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
-          <FiMoreVertical size={24} />
+      {/* Header avec message de bienvenue */}
+      <div className="welcome-header">
+        <div className="welcome-message">
+          Bienvenue au portail employeur
         </div>
-        {menuOpen && (
-          <div className="dropdown-menu">
-            <button onClick={() => toast.info("Notifications")}>🔔 Notifications</button>
-            <button onClick={handleLogout}>🚪 Déconnexion</button>
+        <div className="actions">
+          <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}>
+            <FiMoreVertical size={24} />
           </div>
-        )}
-        <button onClick={toggleDarkMode} className="dark-mode-toggle">
-          {darkMode ? "Mode Clair" : "Mode Sombre"}
-        </button>
+          {menuOpen && (
+            <div className="dropdown-menu">
+              <button onClick={() => toast.info("Notifications")}>
+                <FiBell size={18} />
+                Notifications
+              </button>
+              <button onClick={handleLogout}>
+                <FiLogOut size={18} />
+                Déconnexion
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Menu latéral */}
       <div className="menu-lateral">
-        <h2>Tableau de bord Employeur</h2>
-        <button className={view === "database" ? "active" : ""} onClick={handleAccessDatabase}>
-          🗄️ Accéder à la base de données
+        <h2>Système de Gestion</h2>
+        <button 
+          className={view === "accueil" ? "active" : ""} 
+          onClick={() => setView("accueil")}
+        >
+          Accueil
         </button>
-        <button className={view === "blockchain" ? "active" : ""} onClick={handleAccessBlockchain}>
-          🔗 Accéder à la blockchain
+        <button 
+          className={view === "etudiants" ? "active" : ""} 
+          onClick={() => setView("etudiants")}
+        >
+          Liste des étudiants
+        </button>
+        <button 
+          className={view === "enseignants" ? "active" : ""} 
+          onClick={() => setView("enseignants")}
+        >
+          Liste des enseignants
         </button>
       </div>
 
-      {/* Contenu dynamique */}
+      {/* Contenu principal */}
       <div className="contenu">
         <div className="contenu-box">
-          {view === "database" && (
-            <>
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <h2>Base de données</h2>
-              </motion.div>
-              <p>⚡ Fonctionnalité pour interagir avec la base de données.</p>
-            </>
-          )}
-
-          {view === "blockchain" && (
-            <>
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <h2>Blockchain</h2>
-              </motion.div>
-              <p>⚡ Fonctionnalité pour interagir avec la blockchain.</p>
-            </>
-          )}
-
-          {view === "dashboard" && (
-            <>
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <h2>Bienvenue dans votre tableau de bord</h2>
-              </motion.div>
-              <p>Utilisez le menu pour naviguer entre les différentes sections.</p>
-            </>
+          {view === "accueil" ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2>Tableau de bord</h2>
+              <p>Bienvenue sur votre espace employeur</p>
+            </motion.div>
+          ) : view === "etudiants" ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2>Liste des étudiants</h2>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nom</th>
+                      <th>Prénom</th>
+                      <th>Email</th>
+                      <th>Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Liste des étudiants à venir...</td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2>Liste des enseignants</h2>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nom</th>
+                      <th>Prénom</th>
+                      <th>Email</th>
+                      <th>Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Liste des enseignants à venir...</td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
           )}
         </div>
       </div>
