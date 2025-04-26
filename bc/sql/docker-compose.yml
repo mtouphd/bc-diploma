@@ -1,0 +1,22 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: diploma_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword  # Mot de passe pour l'utilisateur root
+      MYSQL_DATABASE: diplomas           # Base de données par défaut
+      MYSQL_USER: user                   # Utilisateur MySQL
+      MYSQL_PASSWORD: userpassword       # Mot de passe pour l'utilisateur
+    ports:
+      - "3306:3306"                      # Le port 3306 de MySQL sera accessible sur le même port
+    volumes:
+      - db_data:/var/lib/mysql           # Volume pour persister les données
+    networks:
+      - mynetwork
+
+volumes:
+  db_data:                               # Volume pour persister les données
+
+networks:
+  mynetwork:
+    driver: bridge                       # Réseau pour communiquer avec les services Docker
